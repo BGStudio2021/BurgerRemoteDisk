@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>鉴权 - Burger 远程文件</title>
+    <style>
+        html,
+        body {
+            background: #eee;
+            font-family: Arial, sans-serif;
+        }
+
+        .card {
+            width: 85%;
+            margin: 32px auto 0 auto;
+            background: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+
+        .title {
+            text-align: center;
+            color: #0067c0;
+        }
+
+        input {
+            width: 100%;
+            padding: 6px 12px;
+            margin: 4px 0;
+            box-sizing: border-box;
+            background: rgba(240, 240, 240, 0.7);
+            border-style: solid;
+            border-width: 1px 1px 2px 1px;
+            border-color: rgba(0, 0, 0, 0.15) rgba(0, 0, 0, 0.15) rgba(0, 0, 0, 0.4) rgba(0, 0, 0, 0.15);
+            border-radius: 4px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        input:hover {
+            background: rgba(232, 232, 232, 0.7);
+        }
+
+        input:focus {
+            background: rgba(240, 240, 240, 0.7);
+            border-color: rgba(0, 0, 0, 0.15) rgba(0, 0, 0, 0.15) #0067c0 rgba(0, 0, 0, 0.15);
+        }
+
+        button {
+            padding: 6px 16px;
+            background: #0067c0;
+            color: #fff;
+            box-shadow: 0 0.5px 2px 0.5px rgba(0, 0, 0, 0.2);
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            outline: none;
+            transition: 0.1s;
+        }
+
+        button:hover {
+            background: #1875c5;
+        }
+
+        button:active {
+            background: #3083cb;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .btn-secondary {
+            background: #fbfbfb;
+            color: #000;
+        }
+
+        .btn-secondary:hover {
+            background: #f6f6f6;
+        }
+
+        .btn-secondary:active {
+            background: #f5f5f5;
+            color: rgba(0, 0, 0, 0.5);
+            box-shadow: 0 0 1px 0.25px rgba(0, 0, 0, 0.2);
+        }
+
+        .dialog {
+            position: fixed;
+            width: 90%;
+            left: 5%;
+            top: 5%;
+            background-color: #fff;
+            color: #000;
+            border-radius: 8px;
+            box-shadow: 0 4px 32px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 9999;
+            transform: scale(1.1);
+            transform-origin: top;
+            transition-duration: 0.4s;
+            transition-timing-function: cubic-bezier(0.230, 1.000, 0.320, 1.000);
+        }
+
+        .dialog-opened {
+            transform: scale(1);
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .dialog-title {
+            padding: 20px;
+            box-sizing: border-box;
+            font-size: 22px;
+        }
+
+        .dialog-content {
+            padding: 0 20px 20px 20px;
+            font-size: 14px;
+        }
+
+        .dialog-actions {
+            background: rgba(0, 0, 0, 0.05);
+            border-style: solid;
+            border-width: 1.5px 0 0 0;
+            border-color: rgba(0, 0, 0, 0.1);
+            box-sizing: border-box;
+            text-align: right;
+            padding: 20px;
+        }
+
+        .dialog-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 9998;
+            transition: 0.2s;
+        }
+
+        .dialog-overlay-visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .btn-icon {
+            width: 32px;
+            height: 32px;
+            padding: 4px;
+            border-radius: 8px;
+            text-align: center;
+            transition: 0.1s;
+        }
+
+        .btn-icon:hover {
+            background-color: rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-icon:active {
+            background-color: rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-icon img {
+            transform: translateY(4px);
+        }
+
+        .btn-icon-inline {
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        .btn-icon-inline1 {
+            display: inline-block;
+            width: 32px;
+            height: 32px;
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        @media (min-width: 512px) {
+            .dialog {
+                width: 50%;
+                left: 25%;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .card {
+                width: 60%;
+            }
+
+            .password-input {
+                display: inline-block;
+                vertical-align: middle;
+                width: 80%;
+            }
+
+            .password-btn {
+                display: inline-block;
+                vertical-align: middle;
+                width: calc(20% - 5px) !important;
+            }
+
+            .dialog {
+                width: 50%;
+                left: 25%;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .dialog {
+                width: 30%;
+                left: 35%;
+            }
+        }
+
+        .dark {
+            background: #212121;
+        }
+
+        .dark body {
+            background: #212121;
+            color: #fff;
+        }
+
+        .dark .card {
+            background: #333;
+        }
+
+        .dark .title {
+            color: #4CC2FF;
+        }
+
+        .dark .btn-icon {
+            filter: invert(1);
+        }
+
+        .dark input {
+            background: rgba(240, 240, 240, 0.05);
+            border-color: rgba(0, 0, 0, 0) rgba(0, 0, 0, 0) rgba(255, 255, 255, 0.4) rgba(0, 0, 0, 0);
+            color: #fff;
+        }
+
+        .dark input:hover {
+            background: rgba(240, 240, 240, 0.075);
+        }
+
+        .dark input:focus {
+            background: rgba(32, 32, 32, 0.7);
+            border-color: rgba(255, 255, 255, 0.15) rgba(255, 255, 255, 0.15) #4CC2FF rgba(255, 255, 255, 0.15);
+        }
+
+        .dark button {
+            background: #4CC2FF;
+            color: #000;
+            outline: none;
+        }
+
+        .dark button:hover {
+            background: #49B3EA;
+        }
+
+        .dark button:active {
+            background: #46A5D6;
+            color: rgba(0, 0, 0, 0.5);
+        }
+
+        .dark .btn-secondary {
+            background: #2d2d2d;
+            outline: 1.5px solid #353535;
+            color: #fff;
+        }
+
+        .dark .btn-secondary:hover {
+            background: #323232;
+        }
+
+        .dark .btn-secondary:active {
+            background: #272727;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .dark .dialog {
+            background: #2b2b2b;
+            color: #fff;
+            outline: 1.5px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .dark .dialog-actions {
+            background: #202020;
+            border: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <h1 class="title">鉴权</h1>
+        <input type="password" class="password-input" placeholder="请输入密钥"
+            style="margin: 12px 0;padding: 8px 12px !important;font-size: 15px !important;" />
+        <button onclick="authorise();" style="width: 100%;padding: 8px 16px !important;font-size: 16px !important;"
+            class="password-btn">提交</button>
+        <div style="text-align: center;margin-top: 8px;">
+            <div class="btn-icon btn-icon-inline" onclick="toggleDarkMode();"><abbr title="切换深色主题"><img
+                        src="static/material-icons/brightness_4.svg"></abbr></div>
+        </div>
+        <div style="margin: 12px 0;"></div>
+    </div>
+    <div style="text-align: center;margin: 16px 0;color: #777;">Made by Burger Studio.</div>
+    <div class="dialog-overlay"></div>
+    <div class="dialog dialog-error">
+        <div class="dialog-title">错误</div>
+        <div class="dialog-content"></div>
+        <div class="dialog-actions">
+            <button onclick="toggleDialog('.dialog-error');" style="width: 50%;" class="btn-secondary">关闭</button>
+        </div>
+    </div>
+    <script>
+        window.onload = function () {
+            passwordInput = document.querySelector('.password-input');
+            passwordInput.addEventListener('keyup', function (event) {
+                if (event.keyCode === 13) {
+                    authorise();
+                }
+            });
+            setDarkMode();
+        }
+        function authorise() {
+            var _key = Math.floor(new Date().getTime() / 60000) + passwordInput.value;
+            xhr = new XMLHttpRequest();
+            xhr.open('GET', '/api/auth?key=' + encodeURIComponent(btoa(unescape(encodeURIComponent(_key)))), true);
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState == 4) {
+                    var data = JSON.parse(xhr.responseText);
+                    if (data.success) {
+                        sessionStorage.setItem('_key', passwordInput.value);
+                        window.location.href = "/";
+                    } else {
+                        toggleDialog('.dialog-error');
+                        document.querySelector('.dialog-error .dialog-content').innerHTML = data.error;
+                    }
+                }
+            };
+            xhr.send();
+        }
+        function toggleDialog(selector) {
+            document.querySelector(selector).classList.toggle("dialog-opened");
+            document.querySelector(".dialog-overlay").classList.toggle("dialog-overlay-visible");
+            if (document.querySelector(".dialog-overlay").classList.contains("dialog-overlay-visible")) {
+                document.body.style.overflow = "hidden";
+            } else {
+                document.body.style.overflow = "auto";
+            }
+        }
+        function setDarkMode() {
+            if (sessionStorage.darkMode == "true") {
+                document.documentElement.classList.add("dark");
+            } else if (sessionStorage.darkMode != "false" && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.documentElement.classList.add("dark");
+            }
+        }
+        function toggleDarkMode() {
+            document.documentElement.classList.toggle("dark");
+            if (document.documentElement.classList.contains("dark")) {
+                sessionStorage.setItem("darkMode", true);
+            } else {
+                sessionStorage.removeItem("darkMode");
+                sessionStorage.setItem("darkMode", false);
+            }
+        }
+    </script>
+</body>
+
+</html>

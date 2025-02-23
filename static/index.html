@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Burger 远程文件</title>
+    <style>
+        html,
+        body {
+            background: #eee;
+            font-family: Arial, sans-serif;
+        }
+
+        .card {
+            width: 85%;
+            margin: 32px auto 0 auto;
+            background: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+
+        .title {
+            text-align: center;
+            color: #0067c0;
+        }
+
+        input {
+            width: 100%;
+            padding: 6px 12px;
+            margin: 4px 0;
+            box-sizing: border-box;
+            background: rgba(240, 240, 240, 0.7);
+            border-style: solid;
+            border-width: 1px 1px 2px 1px;
+            border-color: rgba(0, 0, 0, 0.15) rgba(0, 0, 0, 0.15) rgba(0, 0, 0, 0.4) rgba(0, 0, 0, 0.15);
+            border-radius: 4px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        input:hover {
+            background: rgba(232, 232, 232, 0.7);
+        }
+
+        input:focus {
+            background: rgba(240, 240, 240, 0.7);
+            border-color: rgba(0, 0, 0, 0.15) rgba(0, 0, 0, 0.15) #0067c0 rgba(0, 0, 0, 0.15);
+        }
+
+        button {
+            padding: 6px 16px;
+            background: #0067c0;
+            color: #fff;
+            box-shadow: 0 0.5px 2px 0.5px rgba(0, 0, 0, 0.2);
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            outline: none;
+            transition: 0.1s;
+        }
+
+        button:hover {
+            background: #1875c5;
+        }
+
+        button:active {
+            background: #3083cb;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .btn-secondary {
+            background: #fbfbfb;
+            color: #000;
+        }
+
+        .btn-secondary:hover {
+            background: #f6f6f6;
+        }
+
+        .btn-secondary:active {
+            background: #f5f5f5;
+            color: rgba(0, 0, 0, 0.5);
+            box-shadow: 0 0 1px 0.25px rgba(0, 0, 0, 0.2);
+        }
+
+        .file-list {
+            list-style: none;
+            padding: 0;
+            margin: 8px 0 0 0;
+            transition: 0.2s;
+        }
+
+        .file-list-item {
+            padding: 6px 8px 4px 8px;
+            transition: 0.1s;
+            border-radius: 4px;
+        }
+
+        .file-list-item:hover {
+            background-color: #f2f2f2;
+        }
+
+        .file-list-item:active {
+            background-color: #ddd;
+        }
+
+        .file-list-item-name {
+            word-wrap: break-word;
+            font-size: 14px;
+        }
+
+        .file-list-item-info div {
+            width: calc(50% - 3px);
+            color: #777;
+            display: inline-block;
+            vertical-align: middle;
+            font-size: 12px;
+        }
+
+        .file-list-item-icon {
+            height: 32px;
+            height: 32px;
+            opacity: 0.75;
+            display: inline-block;
+            vertical-align: middle;
+            transform: translateY(-1px);
+        }
+
+        .dialog {
+            position: fixed;
+            width: 90%;
+            left: 5%;
+            top: 5%;
+            background-color: #fff;
+            color: #000;
+            border-radius: 8px;
+            box-shadow: 0 4px 32px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 9999;
+            transform: scale(1.1);
+            transform-origin: top;
+            transition-duration: 0.4s;
+            transition-timing-function: cubic-bezier(0.230, 1.000, 0.320, 1.000);
+        }
+
+        .dialog-opened {
+            transform: scale(1);
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .dialog-title {
+            padding: 20px;
+            box-sizing: border-box;
+            font-size: 22px;
+        }
+
+        .dialog-content {
+            padding: 0 20px 20px 20px;
+            font-size: 14px;
+        }
+
+        .dialog-actions {
+            background: rgba(0, 0, 0, 0.05);
+            border-style: solid;
+            border-width: 1.5px 0 0 0;
+            border-color: rgba(0, 0, 0, 0.1);
+            box-sizing: border-box;
+            text-align: right;
+            padding: 20px;
+        }
+
+        .dialog-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 9998;
+            transition: 0.2s;
+        }
+
+        .dialog-overlay-visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .btn-icon {
+            width: 32px;
+            height: 32px;
+            padding: 4px;
+            border-radius: 8px;
+            text-align: center;
+            transition: 0.1s;
+        }
+
+        .btn-icon:hover {
+            background-color: rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-icon:active {
+            background-color: rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-icon img {
+            transform: translateY(4px);
+        }
+
+        .btn-icon-inline {
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        .progress-background {
+            width: 100%;
+            height: 4px;
+            background: rgba(0, 0, 0, 0.2);
+            margin: 4px 0;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-foreground {
+            position: relative;
+            left: 0;
+            top: 0;
+            height: 100%;
+            background: #0067c0;
+            transition-duration: 0.2s;
+            transition-timing-function: cubic-bezier(0.230, 1.000, 0.320, 1.000);
+        }
+
+        @media (min-width: 512px) {
+            .dialog {
+                width: 50%;
+                left: 25%;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .card {
+                width: 60%;
+            }
+
+            .path-input {
+                display: inline-block;
+                vertical-align: middle;
+                width: 80%;
+            }
+
+            .path-btn {
+                display: inline-block;
+                vertical-align: middle;
+                width: calc(20% - 5px) !important;
+            }
+
+            .dialog {
+                width: 50%;
+                left: 25%;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .dialog {
+                width: 30%;
+                left: 35%;
+            }
+        }
+
+        .dark {
+            background: #212121;
+        }
+
+        .dark body {
+            background: #212121;
+            color: #fff;
+        }
+
+        .dark .card {
+            background: #333;
+        }
+
+        .dark .title {
+            color: #4CC2FF;
+        }
+
+        .dark .btn-icon,
+        .dark .btn-icon div {
+            filter: invert(1);
+        }
+
+        .dark input {
+            background: rgba(240, 240, 240, 0.05);
+            border-color: rgba(0, 0, 0, 0) rgba(0, 0, 0, 0) rgba(255, 255, 255, 0.4) rgba(0, 0, 0, 0);
+            color: #fff;
+        }
+
+        .dark input:hover {
+            background: rgba(240, 240, 240, 0.075);
+        }
+
+        .dark input:focus {
+            background: rgba(32, 32, 32, 0.7);
+            border-color: rgba(255, 255, 255, 0.15) rgba(255, 255, 255, 0.15) #4CC2FF rgba(255, 255, 255, 0.15);
+        }
+
+        .dark button {
+            background: #4CC2FF;
+            color: #000;
+            outline: none;
+        }
+
+        .dark button:hover {
+            background: #49B3EA;
+        }
+
+        .dark button:active {
+            background: #46A5D6;
+            color: rgba(0, 0, 0, 0.5);
+        }
+
+        .dark .btn-secondary {
+            background: #2d2d2d;
+            outline: 1.5px solid #353535;
+            color: #fff;
+        }
+
+        .dark .btn-secondary:hover {
+            background: #323232;
+        }
+
+        .dark .btn-secondary:active {
+            background: #272727;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .dark .file-list-item:hover {
+            background-color: #444;
+        }
+
+        .dark .file-list-item:active {
+            background-color: #555;
+        }
+
+        .dark .file-list-item-icon {
+            filter: invert(1);
+        }
+
+        .dark .dialog {
+            background: #2b2b2b;
+            color: #fff;
+            outline: 1.5px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .dark .dialog-actions {
+            background: #202020;
+            border: none;
+        }
+
+        .dark .progress-background {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .dark .progress-foreground {
+            background: #4CC2FF;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="upload-progress"></div>
+    <div class="card">
+        <h1 class="title">Burger 远程文件</h1>
+        <div class="path"></div>
+        <form onsubmit="return false;">
+            <input type="text" class="path-input" placeholder="请输入路径"
+                style="margin: 12px 0;padding: 8px 12px !important;font-size: 15px !important;" />
+            <button onclick="getFileList(document.querySelector('.path-input').value);" class="path-btn"
+                style="width: 100%;padding: 8px 16px !important;font-size: 16px !important;">访问</button>
+        </form>
+        <div style="margin-top: 8px;">
+            <div style="display: inline-block;vertical-align: middle;width: 65%;">
+                <div class="btn-icon btn-icon-inline"
+                    onclick="uploading ? toggleDialog('.dialog-upload') : uploadFile();"><abbr title="上传文件"><img
+                            src="static/material-icons/cloud_upload.svg"></i></abbr></div>
+                <div class="btn-icon btn-icon-inline"
+                    onclick="toggleDialog('.dialog-mkdir');document.querySelector('.mkdir-input').focus();"><abbr
+                        title="新建文件夹"><img src="static/material-icons/create_new_folder.svg"></abbr></div>
+                <div class="btn-icon btn-icon-inline" onclick="toggleDarkMode();"><abbr title="切换深色主题"><img
+                            src="static/material-icons/brightness_4.svg"></abbr></div>
+                <div class="btn-icon btn-icon-inline"
+                    onclick="toggleDialog('.dialog-search');document.querySelector('.search-input').focus();"><abbr
+                        title="搜索"><img src="static/material-icons/search.svg"></abbr>
+                </div>
+            </div>
+            <div style="display: inline-block;vertical-align: middle;width: calc(35% - 5px);text-align: right;">
+                <div class="btn-icon btn-icon-inline" onclick="switchSortMethod();"
+                    style="width: auto;padding: 4px 8px;">
+                    <abbr title="排序方式"><img src="static/material-icons/sort.svg"
+                            style="display: inline-block;vertical-align: middle;transform: translateY(4.5px);"></abbr>
+                    <div style="display: inline-block;vertical-align: middle;transform: translateY(3px);"
+                        class="sort-method-tag"></div>
+                </div>
+            </div>
+        </div>
+        <ul class="file-list"></ul>
+    </div>
+    <div style="text-align: center;margin: 16px 0;color: #777;">Made by Burger Studio.</div>
+    <div class="dialog-overlay"></div>
+    <div class="dialog dialog-error">
+        <div class="dialog-title">错误</div>
+        <div class="dialog-content"></div>
+        <div class="dialog-actions">
+            <button onclick="toggleDialog('.dialog-error');" style="width: 50%;" class="btn-secondary">关闭</button>
+        </div>
+    </div>
+    <div class="dialog dialog-mkdir">
+        <div class="dialog-title">新建文件夹</div>
+        <div class="dialog-content">
+            <form onsubmit="return false;">
+                <input type="text" class="mkdir-input" placeholder="请输入文件夹名称" />
+            </form>
+        </div>
+        <div class="dialog-actions">
+            <button onclick="toggleDialog('.dialog-mkdir');" style="width: calc(50% - 5px);margin-right: 5px;"
+                class="btn-secondary">取消</button>
+            <button onclick="mkdir();" style="width: calc(50% - 5px);">创建</button>
+        </div>
+    </div>
+    <div class="dialog dialog-search">
+        <div class="dialog-title">搜索</div>
+        <div class="dialog-content">
+            <div style="margin-bottom: 8px;">搜索当前目录：</div>
+            <form onsubmit="return false;">
+                <input type="text" class="search-input" placeholder="请输入关键字" />
+            </form>
+        </div>
+        <div class="dialog-actions">
+            <button onclick="toggleDialog('.dialog-search');" style="width: calc(50% - 5px);margin-right: 5px;"
+                class="btn-secondary">取消</button>
+            <button onclick="search();" style="width: calc(50% - 5px);">搜索</button>
+        </div>
+    </div>
+    <div class="dialog dialog-upload">
+        <div class="dialog-title">上传文件</div>
+        <div class="dialog-content">
+            <div class="upload-name"></div>
+            <div class="progress-background">
+                <div class="progress-foreground upload-progress-single"></div>
+            </div>
+            <div class="upload-percentage-single"
+                style="display: inline-block;vertical-align: middle;width: calc(50% - 5px);"></div>
+            <div class="upload-size" style="display: inline-block;vertical-align: middle;width: 50%;text-align: right;">
+            </div>
+            <div class="progress-background" style="margin-top: 16px;">
+                <div class="progress-foreground upload-progress-all"></div>
+            </div>
+            <div class="upload-percentage-all" style="text-align: center;"></div>
+        </div>
+        <div class="dialog-actions">
+            <button onclick="toggleDialog('.dialog-upload');" style="width: 50%;" class="btn-secondary">关闭</button>
+        </div>
+    </div>
+    <script>
+        window.onload = function () {
+            if (!sessionStorage._key) {
+                window.location.href = "/auth";
+            }
+            currentPath = "D:/";
+            document.querySelector(".path").innerHTML = "输入一个路径并访问：";
+            document.querySelector(".path-input").value = currentPath;
+            fileList = document.querySelector(".file-list");
+            setDarkMode();
+            if (sessionStorage.sortMethod) {
+                sortMethod = sessionStorage.sortMethod;
+            } else {
+                sortMethod = 0;
+            }
+            document.querySelector(".sort-method-tag").innerHTML = sortMethods[sortMethod].name;
+            uploading = false;
+            fileUploadInput = document.createElement("input");
+            fileUploadInput.type = "file";
+            fileUploadInput.multiple = true;
+        }
+        function getFileList(path) {
+            path = path.replace(/\\/g, "/");
+            path = path[path.length - 1] == "/" ? path : path + "/";
+            var xhr = new XMLHttpRequest();
+            xhr.open("GET", "/api/fileList?path=" + encodeURIComponent(path) + "&key=" + generateKey(), true);
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState == 4) {
+                    if (xhr.status == 200) {
+                        fileList.style.opacity = 0;
+                        window.setTimeout(function () {
+                            currentPath = path;
+                            var data = JSON.parse(xhr.responseText);
+                            if (sortMethod == 2 || sortMethod == 3) {
+                                var _data = data.filter(item => !item.isFolder);
+                                data = data.filter(item => item.isFolder);
+                                _data.sort((a, b) => {
+                                    if (a.size < b.size) {
+                                        return -1;
+                                    } else if (a.size > b.size) {
+                                        return 1;
+                                    } else {
+                                        return 0;
+                                    }
+                                });
+                                data = data.concat(_data);
+                            }
+                            if (sortMethod == 4 || sortMethod == 5) {
+                                data.sort((a, b) => {
+                                    if (a.modified < b.modified) {
+                                        return -1;
+                                    } else if (a.modified > b.modified) {
+                                        return 1;
+                                    } else {
+                                        return 0;
+                                    }
+                                });
+                            }
+                            if (sortMethod % 2 == 1) {
+                                data.reverse();
+                            }
+                            data.sort((a, b) => {
+                                if (a.isFolder && !b.isFolder) {
+                                    return -1;
+                                } else if (!a.isFolder && b.isFolder) {
+                                    return 1;
+                                } else {
+                                    return 0;
+                                }
+                            });
+                            var html = "";
+                            if (parentDirectory() != currentPath) {
+                                html += `<li onclick="getFileList(parentDirectory());" class="file-list-item">
+                <img src="static/material-icons/folder.svg" class="file-list-item-icon">
+                <div style="display: inline-block;vertical-align: middle;width: calc(100% - 41px);margin-left: 4px;">
+                    <div class="file-list-item-name">..</div>
+                    <div class="file-list-item-info">
+                        <div>上级目录</div>
+                    </div>
+                </div>
+            </li>`;
+                            }
+                            for (var i = 0; i < data.length; i++) {
+                                if (data[i].isFolder) {
+                                    var icon = "folder";
+                                } else {
+                                    var icon = "insert_drive_file";
+                                    var ext = data[i].name.split(".").pop().toLowerCase();
+                                    for (var j = 0; j < icons.length; j++) {
+                                        if (icons[j].match.split(",").indexOf(ext) != -1) {
+                                            icon = icons[j].icon;
+                                            break;
+                                        }
+                                    }
+                                }
+                                html += `<li onclick="${!data[i].isFolder ? 'download(\'' + currentPath + data[i].name + '\'' : 'getFileList(\'' + currentPath + data[i].name + '\''})" class="file-list-item">
+                <img src="static/material-icons/${icon}.svg" class="file-list-item-icon">
+                <div style="display: inline-block;vertical-align: middle;width: calc(100% - 41px);margin-left: 4px;">
+                    <div class="file-list-item-name">${data[i].name}</div>
+                    <div class="file-list-item-info">
+                        <div>${data[i].isFolder ? "文件夹" : formatSize(data[i].size)}</div>
+                        <div style="text-align: right;">${data[i].modified}</div>
+                    </div>
+                </div>
+            </li>`;
+                            }
+                            document.querySelector(".path").innerHTML = "位置：" + currentPath;
+                            document.querySelector(".path-input").value = currentPath;
+                            fileList.innerHTML = html;
+                            fileList.style.opacity = 1;
+                        }, 300);
+                    } else {
+                        toggleDialog(".dialog-error");
+                        document.querySelector(".dialog-error .dialog-content").innerHTML = JSON.parse(xhr.responseText).error;
+                        if (xhr.status == 401) {
+                            window.location.href = "/auth";
+                        }
+                    }
+                }
+            }
+            xhr.send();
+        }
+        document.querySelector(".path-input").addEventListener("keydown", function (event) {
+            if (event.keyCode == 13) {
+                getFileList(document.querySelector(".path-input").value);
+                document.querySelector(".path-input").blur();
+            }
+        });
+        document.querySelector(".mkdir-input").addEventListener("keydown", function (event) {
+            if (event.keyCode == 13) {
+                mkdir();
+                document.querySelector(".mkdir-input").blur();
+            }
+        });
+        document.querySelector(".search-input").addEventListener("keydown", function (event) {
+            if (event.keyCode == 13) {
+                search();
+                document.querySelector(".search-input").blur();
+            }
+        });
+        function formatSize(bytes, decimalPoint) {
+            if (bytes === 0) return '0 B';
+            var k = 1024,
+                dm = decimalPoint || 2,
+                sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'],
+                i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+        }
+        function download(path) {
+            window.open("/api/download?path=" + encodeURIComponent(path) + "&key=" + generateKey(), "_blank")
+        }
+        function parentDirectory() {
+            var path = currentPath.split("/");
+            path.pop();
+            if (path[0] == "") {
+                path.shift();
+            }
+            if (path.length != 1) {
+                path.pop();
+                if (currentPath[0] == "/") {
+                    var result = "/" + path.join("/");
+                } else {
+                    var result = path.join("/");
+                }
+            } else {
+                if (currentPath[0] == "/") {
+                    var result = "/";
+                } else {
+                    var result = path[0];
+                }
+            }
+            return result[result.length - 1] == "/" ? result : result + "/";
+        }
+        function generateKey() {
+            var _key = Math.floor(new Date().getTime() / 60000) + sessionStorage._key;
+            return encodeURIComponent(btoa(unescape(encodeURIComponent(_key))));
+        }
+        function toggleDialog(selector) {
+            document.querySelector(selector).classList.toggle("dialog-opened");
+            document.querySelector(".dialog-overlay").classList.toggle("dialog-overlay-visible");
+            if (document.querySelector(".dialog-overlay").classList.contains("dialog-overlay-visible")) {
+                document.body.style.overflow = "hidden";
+            } else {
+                document.body.style.overflow = "auto";
+            }
+        }
+        function mkdir() {
+            var name = document.querySelector(".mkdir-input").value;
+            if (name != "") {
+                toggleDialog(".dialog-mkdir");
+                var xhr = new XMLHttpRequest();
+                xhr.open("POST", "/api/mkdir?path=" + encodeURIComponent(currentPath) + "&name=" + encodeURIComponent(name) + "&key=" + generateKey(), true);
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState == 4) {
+                        if (xhr.status == 200) {
+                            document.querySelector(".mkdir-input").value = "";
+                            getFileList(currentPath);
+                        } else {
+                            toggleDialog(".dialog-error");
+                            document.querySelector(".dialog-error .dialog-content").innerHTML = JSON.parse(xhr.responseText).error;
+                            if (xhr.status == 401) {
+                                window.location.href = "/auth";
+                            }
+                        }
+                    }
+                }
+                xhr.send();
+            }
+        }
+        function setDarkMode() {
+            if (sessionStorage.darkMode == "true") {
+                document.documentElement.classList.add("dark");
+            } else if (sessionStorage.darkMode != "false" && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.documentElement.classList.add("dark");
+            }
+        }
+        function toggleDarkMode() {
+            document.documentElement.classList.toggle("dark");
+            if (document.documentElement.classList.contains("dark")) {
+                sessionStorage.setItem("darkMode", true);
+            } else {
+                sessionStorage.removeItem("darkMode");
+                sessionStorage.setItem("darkMode", false);
+            }
+        }
+        function search() {
+            toggleDialog(".dialog-search");
+            var keyword = document.querySelector(".search-input").value;
+            if (keyword != "") {
+                document.querySelectorAll(".file-list-item-name").forEach(function (item) {
+                    if (item.textContent.toLowerCase().indexOf(keyword.toLowerCase()) != -1) {
+                        item.parentElement.parentElement.style.display = "block";
+                    } else {
+                        item.parentElement.parentElement.style.display = "none";
+                    }
+                });
+            } else {
+                document.querySelectorAll(".file-list-item").forEach(function (item) {
+                    item.style.display = "block";
+                });
+            }
+        }
+        function switchSortMethod() {
+            sortMethod = (Number(sortMethod) + 1) % 6;
+            sessionStorage.setItem("sortMethod", sortMethod);
+            document.querySelector(".sort-method-tag").innerHTML = sortMethods[sortMethod].name;
+            getFileList(currentPath);
+        }
+        function uploadFile() {
+            fileUploadInput.onchange = function (event) {
+                toggleDialog(".dialog-upload");
+                var files = event.target.files;
+                var index = 0;
+                function processNext() {
+                    if (index >= files.length) {
+                        uploading = false;
+                        document.querySelector(".upload-progress-all").style.width = "100%";
+                        document.querySelector(".upload-percentage-all").innerText = files.length + " / " + files.length;
+                        if (document.querySelector(".dialog-upload").classList.contains("dialog-opened")) {
+                            toggleDialog(".dialog-upload");
+                        }
+                        getFileList(currentPath);
+                        return;
+                    } else {
+                        uploading = true;
+                    }
+                    var file = files[index];
+                    document.querySelector(".upload-name").innerText = file.name;
+                    document.querySelector(".upload-size").innerText = formatSize(file.size);
+                    document.querySelector(".upload-progress-single").style.width = "0%";
+                    document.querySelector(".upload-percentage-single").innerText = "0%";
+                    document.querySelector(".upload-progress-all").style.width = index / files.length * 100 + "%";
+                    document.querySelector(".upload-percentage-all").innerText = index + " / " + files.length;
+                    index++;
+                    var xhr = new XMLHttpRequest();
+                    xhr.open("POST", "/api/upload?path=" + encodeURIComponent(currentPath) + "&key=" + generateKey(), true);
+                    xhr.onreadystatechange = function () {
+                        if (xhr.readyState == 4) {
+                            if (xhr.status != 200) {
+                                if (document.querySelector(".dialog-upload").classList.contains("dialog-opened")) {
+                                    toggleDialog(".dialog-upload");
+                                }
+                                toggleDialog(".dialog-error");
+                                document.querySelector(".dialog-error .dialog-content").innerHTML = JSON.parse(xhr.responseText).error;
+                                if (xhr.status == 401) {
+                                    window.location.href = "/auth";
+                                }
+                            }
+                            processNext();
+                        }
+                    };
+                    xhr.upload.onprogress = function (event) {
+                        if (event.lengthComputable) {
+                            var percent = (event.loaded / event.total) * 100;
+                            document.querySelector(".upload-progress-single").style.width = percent + "%";
+                            document.querySelector(".upload-percentage-single").innerText = percent.toFixed(2) + "%";
+                        }
+                    };
+                    var formData = new FormData();
+                    formData.append("file", file);
+                    xhr.send(formData);
+                }
+                processNext();
+            };
+            fileUploadInput.click();
+        }
+        sortMethods = [
+            { name: "名称↑", value: 0 },
+            { name: "名称↓", value: 1 },
+            { name: "大小↑", value: 2 },
+            { name: "大小↓", value: 3 },
+            { name: "日期↑", value: 4 },
+            { name: "日期↓", value: 5 }
+        ];
+        icons = [
+            { match: "bmp,gif,ico,jpeg,jpg,png,svg,tiff,webp,psd", icon: "image" },
+            { match: "mp3,wav,aac,m4a,ogg,webm,aiff,aif,aifc,flac,ape,mid,sf2", icon: "music_note" },
+            { match: "mp4,3gp,avi,wmv,asf,mpeg,mpg,mpe,ts,mov,flv,swf,mpg,dat,flc", icon: "movie" },
+            { match: "pdf", icon: "picture_as_pdf" },
+            { match: "txt,doc,docx,log,md", icon: "description" },
+            { match: "xls,xlsx,xlsm,xlsb,csv", icon: "table_view" },
+            { match: "ppt,pptx,pptm,pot,pps,ppa", icon: "pie_chart" },
+            { match: "bak", icon: "settings_backup_restore" },
+            { match: "zip,rar,tar,gz,tgz,bz2,7z,xz,jar", icon: "folder_zip" },
+            { match: "vdi,vhd,vmdk,vhdx,img,dmg,qcow,qcow2,gho", icon: "save" },
+            { match: "iso", icon: "album" },
+            { match: "nomedia", icon: "music_off" },
+            { match: "apk,apkm,xapk,apks,obb", icon: "android" },
+            { match: "exe,com,appimage", icon: "computer" },
+            { match: "msi,inf,deb,rpm", icon: "install_desktop" },
+            { match: "bat,cmd,ps1,sh,xml,html,css,js,php,json,vbs,vba,h,c,java,class,py,mhtml,mht,inc", icon: "code" },
+            { match: "cfg,config,ini,dll,lib,so", icon: "settings" },
+            { match: "ipa,app,sis,sisx", icon: "install_mobile" },
+            { match: "db,mdb,accdb,dbf,sql,sqlite,db3,mdf,myd,wdb", icon: "storage" },
+            { match: "crdownload", icon: "downloading" },
+            { match: "themes,msstyles", icon: "style" },
+            { match: "vcf", icon: "contacts" },
+            { match: "prop", icon: "info" },
+            { match: "pem,der,cer,crt,key,csr,p12,0", icon: "vpn_key" },
+            { match: "ttf,otf,woff,woff2,eot", icon: "text_fields" },
+            { match: "crx", icon: "extension" },
+            { match: "list", icon: "list" },
+            { match: "tmp", icon: "delete_forever" },
+            { match: "sys", icon: "settings_applications" },
+            { match: "lnk,url", icon: "link" }
+        ];
+    </script>
+</body>
+
+</html>

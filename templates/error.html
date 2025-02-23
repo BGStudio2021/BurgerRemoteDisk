@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>错误 - Burger 远程文件</title>
+    <style>
+        html,
+        body {
+            background: #eee;
+            font-family: Arial, sans-serif;
+        }
+
+        .card {
+            width: 85%;
+            margin: 32px auto 0 auto;
+            background: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+
+        .title {
+            text-align: center;
+            color: #0067c0;
+        }
+
+        @media (min-width: 768px) {
+            .card {
+                width: 60%;
+            }
+        }
+
+        .dark {
+            background: #212121;
+        }
+
+        .dark body {
+            background: #212121;
+            color: #fff;
+        }
+
+        .dark .card {
+            background: #333;
+        }
+
+        .dark .title {
+            color: #4CC2FF;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <h1 class="title">错误</h1>
+        <p style="margin-bottom: 24px;">{{ error }}</p>
+    </div>
+    <div style="text-align: center;margin: 16px 0;color: #777;">Made by Burger Studio.</div>
+    <script>
+        window.onload = function () {
+            setDarkMode();
+        }
+        function setDarkMode() {
+            if (sessionStorage.darkMode == "true") {
+                document.documentElement.classList.add("dark");
+            } else if (sessionStorage.darkMode != "false" && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.documentElement.classList.add("dark");
+            }
+        }
+    </script>
+</body>
+
+</html>
